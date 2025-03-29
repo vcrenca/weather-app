@@ -2,3 +2,4 @@
 weather-api.iml
 bin/
 .env
+tmp/

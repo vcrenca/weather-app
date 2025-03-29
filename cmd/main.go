@@ -8,15 +8,18 @@ import (
 	"net/http"
 	"weather-api/internal/app"
 	"weather-api/internal/infra"
+	"weather-api/internal/ports"
 )
 
 func main() {
 	config := app.GetConfig()
 
-	router := infra.CreateRouter()
+	rootMux := http.NewServeMux()
+	rootMux.Handle("/api/v1/", ports.ApiV1Mux())
 
+	server := infra.CreateServer(config.HttpPort, rootMux)
 	slog.Info("Starting http server on port " + config.HttpPort)
-	if err := http.ListenAndServe(":"+config.HttpPort, router); err != nil {
+	if err := server.ListenAndServe(); err != nil {
 		if !errors.Is(err, http.ErrServerClosed) {
 			slog.Error("failed to start http server", "err", err)
 		}

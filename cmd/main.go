@@ -6,18 +6,21 @@ import (
 	"log"
 	"log/slog"
 	"net/http"
+	"os"
 	"weather-api/internal/app"
-	"weather-api/internal/infra"
-	"weather-api/internal/ports"
+	portshttp "weather-api/internal/ports/http"
+	pkghttp "weather-api/pkg/http"
+
+	// Init logging configuration
+	_ "weather-api/pkg/log"
 )
 
 func main() {
-	config := app.GetConfig()
+	application := app.New()
+	config := application.Configuration()
 
-	rootMux := http.NewServeMux()
-	rootMux.Handle("/api/v1/", ports.ApiV1Mux())
-
-	server := infra.CreateServer(config.HttpPort, rootMux)
+	httpRouter := portshttp.RegisterHttpRoutes(application)
+	server := pkghttp.CreateServer(config.HttpPort, httpRouter)
 	slog.Info("Starting http server on port " + config.HttpPort)
 	if err := server.ListenAndServe(); err != nil {
 		if !errors.Is(err, http.ErrServerClosed) {
@@ -27,7 +30,15 @@ func main() {
 }
 
 func init() {
-	if err := godotenv.Load(); err != nil {
-		log.Fatalf("failed to load configuration from .env file: %s", err)
+	env := os.Getenv("ENV")
+	slog.Info(
+		"Starting application",
+		"ENV", env,
+	)
+
+	if os.Getenv("ENV") == "local" {
+		if err := godotenv.Load(); err != nil {
+			log.Fatalf("failed to load configuration from .env file: %s", err)
+		}
 	}
 }

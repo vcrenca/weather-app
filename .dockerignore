@@ -1,0 +1,4 @@
+bin/
+idea/
+.gitignore
+weather-api.iml/

@@ -2,12 +2,12 @@ package app
 
 import "os"
 
-type Config struct {
+type Configuration struct {
 	HttpPort string
 }
 
-func GetConfig() Config {
-	return Config{
+func getConfiguration() Configuration {
+	return Configuration{
 		HttpPort: getOrDefault(os.Getenv("HTTP_PORT"), "8080"),
 	}
 }

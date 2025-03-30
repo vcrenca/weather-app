@@ -1,4 +1,4 @@
-package infra
+package http
 
 import (
 	"context"
@@ -11,13 +11,6 @@ import (
 const (
 	requestIDKey = "requestID"
 )
-
-func CreateServer(port string, handler http.Handler) *http.Server {
-	return &http.Server{
-		Addr:    ":" + port,
-		Handler: WithHttpRequestID(WithHttpLogging(handler)),
-	}
-}
 
 func WithHttpLogging(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
@@ -34,10 +27,10 @@ func WithHttpLogging(next http.Handler) http.Handler {
 		status := wrappedResponseWriter.status
 		log := logger.Info
 		switch {
-		case status >= 400:
-			log = logger.Warn
 		case status >= 500:
 			log = logger.Error
+		case status >= 400:
+			log = logger.Warn
 		}
 
 		log("request completed", "status", wrappedResponseWriter.status)

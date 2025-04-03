@@ -6,10 +6,8 @@ import (
 	"net/http"
 )
 
-func CreateWeatherHandler() func(router chi.Router) http.Handler {
-	return func(router chi.Router) http.Handler {
-		return HandlerFromMux(WeatherHttpHandler{}, router)
-	}
+func CreateWeatherHttpHandler(router chi.Router) http.Handler {
+	return HandlerFromMux(WeatherHttpHandler{}, router)
 }
 
 type WeatherHttpHandler struct{}

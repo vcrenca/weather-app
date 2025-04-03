@@ -1,17 +1,16 @@
 package log
 
 import (
-	"log/slog"
+	log "github.com/sirupsen/logrus"
 	"os"
 )
 
 func init() {
-	var logger *slog.Logger
 	if os.Getenv("ENV") == "local" {
-		logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
+		log.SetFormatter(&log.TextFormatter{PadLevelText: true})
 	} else {
-		logger = slog.New(slog.NewJSONHandler(os.Stdout, nil))
+		log.SetFormatter(&log.JSONFormatter{})
 	}
 
-	slog.SetDefault(logger)
+	log.SetLevel(log.DebugLevel)
 }

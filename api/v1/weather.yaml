@@ -1,0 +1,139 @@
+openapi: 3.0.3
+info:
+  title: Weather API
+  description: API providing current weather and forecasts for a given city.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8080/api
+    description: Local server
+
+paths:
+  /v1/weather/current:
+    get:
+      summary: Retrieve current weather for a given city
+      parameters:
+        - name: location
+          in: query
+          required: true
+          description: Name of the city to get the weather for
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Response containing the current weather
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrentWeather'
+        "400":
+          description: Invalid request
+        "500":
+          description: Internal server error
+
+  /v1/weather/forecast:
+    get:
+      summary: Retrieve condensed weather forecasts for a given city
+      parameters:
+        - name: location
+          in: query
+          required: true
+          description: Name of the city to get the forecast for
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Response containing weather forecasts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Forecast'
+        "400":
+          description: Invalid request
+        "500":
+          description: Internal server error
+
+components:
+  schemas:
+    CurrentWeather:
+      type: object
+      required:
+        - description
+        - temperature
+        - wind
+        - humidity
+      properties:
+        description:
+          type: string
+          description: Brief textual description of the weather
+          example: "Clear sky"
+        temperature:
+          type: number
+          format: float
+          description: Temperature in Celsius
+          example: 22.5
+        wind:
+          type: number
+          format: float
+          description: Wind speed in km/h
+          example: 15.0
+        humidity:
+          type: integer
+          description: Relative humidity in percentage
+          example: 60
+    Forecast:
+      type: object
+      required:
+        - generalTrend
+        - temperatureTrend
+        - pressureTrend
+        - averageWind
+      properties:
+        generalTrend:
+          type: string
+          description: General trend of the weather
+          enum:
+            - improving
+            - stable
+            - deteriorating
+          example: "stable"
+        temperatureTrend:
+          $ref: '#/components/schemas/TemperatureTrend'
+        pressureTrend:
+          $ref: '#/components/schemas/PressureTrend'
+        averageWind:
+          type: string
+          description: Wind level according to the Beaufort scale
+          enum:
+            - Calm
+            - Light air
+            - Light breeze
+            - Gentle breeze
+            - Moderate breeze
+            - Fresh breeze
+            - Strong breeze
+            - Near gale
+            - Gale
+            - Strong gale
+            - Storm
+            - Violent storm
+            - Hurricane
+          example: "Moderate breeze"
+    PressureTrend:
+      description: The barometric pressure trend for the forecast.
+      type: string
+      enum:
+        - rising
+        - stable
+        - falling
+        - sharply rising
+        - sharply falling
+      example: "sharply rising"
+    TemperatureTrend:
+      type: string
+      description: The temperature trend for the forecast.
+      enum:
+        - rising
+        - stable
+        - falling
+      example: "stable"

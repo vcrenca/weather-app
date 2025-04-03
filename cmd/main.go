@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"os"
 	"weather-api/internal/app"
-	portshttp "weather-api/internal/ports/http"
-	pkghttp "weather-api/pkg/http"
+	httpserver "weather-api/internal/ports/http"
+	apiv1 "weather-api/internal/ports/http/v1"
 
 	// Init logging configuration
 	_ "weather-api/pkg/log"
@@ -19,12 +19,12 @@ func main() {
 	application := app.New()
 	config := application.Configuration()
 
-	httpRouter := portshttp.RegisterHttpRoutes(application)
-	server := pkghttp.CreateServer(config.HttpPort, httpRouter)
-	slog.Info("Starting http server on port " + config.HttpPort)
+	server := httpserver.CreateServer(config.HttpPort, apiv1.CreateWeatherHandler())
+
+	slog.Info("Starting HTTP server", "port", config.HttpPort)
 	if err := server.ListenAndServe(); err != nil {
 		if !errors.Is(err, http.ErrServerClosed) {
-			slog.Error("failed to start http server", "err", err)
+			log.Fatalf("failed to start http server: %s", err.Error())
 		}
 	}
 }

@@ -9,7 +9,7 @@ import (
 func CreateServer(port string, createHandler func(router chi.Router) http.Handler) http.Server {
 	apiRouter := chi.NewRouter()
 	apiRouter.Use(middleware.RequestID)
-	apiRouter.Use(LogrusMiddleware())
+	apiRouter.Use(logMiddleware)
 	apiRouter.Use(middleware.Recoverer)
 
 	rootRouter := chi.NewRouter()

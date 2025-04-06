@@ -3,26 +3,29 @@ package main
 import (
 	"errors"
 	"github.com/joho/godotenv"
-	log "github.com/sirupsen/logrus"
+	"log/slog"
 	"net/http"
 	"os"
 	"weather-api/internal/app"
+	"weather-api/internal/common"
 	httpserver "weather-api/internal/ports/http"
 	apiv1 "weather-api/internal/ports/http/v1"
-
-	// Init logging configuration
-	_ "weather-api/pkg/log"
 )
 
 func init() {
 	env := os.Getenv("ENV")
-	log.WithField("env", env).Info(
+	common.InitLogger(env)
+	loadDotEnvIfLocal(env)
+	slog.Info(
 		"Starting application",
+		slog.String("env", env),
 	)
+}
 
-	if os.Getenv("ENV") == "local" {
+func loadDotEnvIfLocal(env string) {
+	if env == "local" {
 		if err := godotenv.Load(); err != nil {
-			log.Fatalf("failed to load configuration from .env file: %s", err)
+			slog.Error("failed to load configuration from .env file", slog.String("error", err.Error()))
 		}
 	}
 }
@@ -32,10 +35,10 @@ func main() {
 	config := application.Configuration()
 
 	server := httpserver.CreateServer(config.HttpPort, apiv1.CreateWeatherHttpHandler)
-	log.WithField("port", config.HttpPort).Info("Starting HTTP server")
+	slog.Info("Starting HTTP server", slog.String("port", config.HttpPort))
 	if err := server.ListenAndServe(); err != nil {
 		if !errors.Is(err, http.ErrServerClosed) {
-			log.Fatalf("failed to start http server: %s", err.Error())
+			slog.Error("failed to start http server", slog.String("error", err.Error()))
 		}
 	}
 }

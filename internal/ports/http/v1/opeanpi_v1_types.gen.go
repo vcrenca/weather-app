@@ -87,8 +87,8 @@ type TemperatureTrend string
 
 // GetV1WeatherCurrentParams defines parameters for GetV1WeatherCurrent.
 type GetV1WeatherCurrentParams struct {
-	// Location Name of the city to get the weather for
-	Location string `form:"location" json:"location"`
+	// City Name of the city to get the weather for
+	City string `form:"city" json:"city"`
 }
 
 // GetV1WeatherForecastParams defines parameters for GetV1WeatherForecast.

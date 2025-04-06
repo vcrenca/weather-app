@@ -2,8 +2,6 @@ package app
 
 type Application struct {
 	configuration Configuration
-
-	GetCurrentWeatherByCity
 }
 
 func (a Application) Configuration() Configuration {

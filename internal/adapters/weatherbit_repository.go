@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"weather-api/internal/domain/weather"
@@ -12,27 +13,6 @@ import (
 type WeatherBitRepository struct {
 	baseUrl string
 	apiKey  string
-}
-
-// Response type for WeatherBit API
-type WeatherBitCurrentResponse struct {
-	CityName string  `json:"city_name"`
-	Temp     float64 `json:"temp"`
-	WindSpd  float64 `json:"wind_spd"`
-	Rh       int     `json:"rh"`
-	Weather  struct {
-		Description string `json:"description"`
-	} `json:"weather"`
-}
-
-func mapToDomain(weatherBitResponse WeatherBitCurrentResponse) *weather.Current {
-	return &weather.Current{
-		City:               weatherBitResponse.CityName,
-		Description:        weatherBitResponse.Weather.Description,
-		TemperatureCelsius: int(weatherBitResponse.Temp),
-		WindKmPerHour:      int(weatherBitResponse.WindSpd * 3.6),
-		RelativeHumidity:   weather.NewPercent(weatherBitResponse.Rh),
-	}
 }
 
 func NewWeatherBitRepository(baseUrl string, apiKey string) *WeatherBitRepository {
@@ -51,61 +31,72 @@ func NewWeatherBitRepository(baseUrl string, apiKey string) *WeatherBitRepositor
 }
 
 func (w WeatherBitRepository) GetCurrentWeather(ctx context.Context, city string) (*weather.Current, error) {
-	response, err := w.get(ctx, city)
+	cityQuery := make(url.Values, 1)
+	cityQuery.Set("city", city)
+
+	_, body, err := w.get(ctx, "/current", cityQuery)
 	if err != nil {
 		return nil, err
 	}
-	defer response.Body.Close()
 
-	var result struct {
+	var weatherCurrentResponse struct {
 		Data []WeatherBitCurrentResponse `json:"data"`
 	}
-	if err := json.NewDecoder(response.Body).Decode(&result); err != nil {
-		return nil, fmt.Errorf("failed to decode response: %w", err)
+	if err := json.Unmarshal(body, &weatherCurrentResponse); err != nil {
+		return nil, fmt.Errorf("failed to decode current weather response: %w", err)
 	}
 
-	if len(result.Data) == 0 {
-		//TODO: Implement business error ErrNoWeatherFound
-		return nil, fmt.Errorf("no weather data returned")
+	if len(weatherCurrentResponse.Data) == 0 {
+		return nil, weather.ErrWeatherNotFound
 	}
 
-	return mapToDomain(result.Data[0]), nil
+	return mapToDomain(weatherCurrentResponse.Data[0]), nil
 }
 
-func (w WeatherBitRepository) get(ctx context.Context, endpoint string) (*http.Response, error) {
-	url, err := w.buildUrl(endpoint)
+func (w WeatherBitRepository) get(ctx context.Context, path string, params url.Values) (*int, []byte, error) {
+	requestURL, err := w.buildUrl(path, params)
 	if err != nil {
-		return nil, fmt.Errorf("failed to build url: %w", err)
+		return nil, nil, fmt.Errorf("failed to build requestURL: %w", err)
 	}
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url.String(), nil)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, requestURL.String(), nil)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
+		return nil, nil, fmt.Errorf("failed to create request: %w", err)
 	}
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("failed to execute request: %w", err)
+		return nil, nil, fmt.Errorf("failed to execute request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	responseBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to read response body: %w", err)
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status: %s", resp.Status)
+		return &resp.StatusCode, responseBody, fmt.Errorf("WeatherBit responded with unexpected status code %d with body %s", resp.StatusCode, responseBody)
 	}
 
-	return resp, nil
+	return &resp.StatusCode, responseBody, nil
 }
 
-func (w WeatherBitRepository) buildUrl(endpoint string) (*url.URL, error) {
+func (w WeatherBitRepository) buildUrl(endpoint string, queryParams url.Values) (*url.URL, error) {
 	urlPath, err := url.JoinPath(w.baseUrl, endpoint)
 	if err != nil {
 		return nil, fmt.Errorf("failed to join paths in url: %w", err)
 	}
 
-	builtUrl, err := url.ParseRequestURI(urlPath)
+	requestURL, err := url.ParseRequestURI(urlPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse path into url: %w", err)
 	}
 
-	return w.addApiKeyToUrl(builtUrl), nil
+	queryParams.Add("key", w.apiKey)
+	requestURL.RawQuery = queryParams.Encode()
+
+	return requestURL, nil
 }
 
 func (w WeatherBitRepository) addApiKeyToUrl(baseURL *url.URL) *url.URL {
@@ -114,4 +105,24 @@ func (w WeatherBitRepository) addApiKeyToUrl(baseURL *url.URL) *url.URL {
 	query.Set("key", w.apiKey)
 	urlCopy.RawQuery = query.Encode()
 	return &urlCopy
+}
+
+type WeatherBitCurrentResponse struct {
+	CityName string  `json:"city_name"`
+	Temp     float32 `json:"temp"`
+	WindSpd  float32 `json:"wind_spd"`
+	Rh       int     `json:"rh"`
+	Weather  struct {
+		Description string `json:"description"`
+	} `json:"weather"`
+}
+
+func mapToDomain(weatherBitResponse WeatherBitCurrentResponse) *weather.Current {
+	return &weather.Current{
+		City:               weatherBitResponse.CityName,
+		Description:        weatherBitResponse.Weather.Description,
+		TemperatureCelsius: weatherBitResponse.Temp,
+		WindKmPerHour:      weatherBitResponse.WindSpd * 3.6,
+		RelativeHumidity:   weather.NewPercent(weatherBitResponse.Rh),
+	}
 }

@@ -10,10 +10,14 @@ func NewPercent(value int) Percent {
 	return Percent(value)
 }
 
+func (p Percent) Int() int {
+	return int(p)
+}
+
 type Current struct {
 	City               string
 	Description        string
-	TemperatureCelsius int
-	WindKmPerHour      int
+	TemperatureCelsius float32
+	WindKmPerHour      float32
 	RelativeHumidity   Percent
 }

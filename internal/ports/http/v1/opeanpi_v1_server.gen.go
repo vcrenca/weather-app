@@ -54,18 +54,18 @@ func (siw *ServerInterfaceWrapper) GetV1WeatherCurrent(w http.ResponseWriter, r 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params GetV1WeatherCurrentParams
 
-	// ------------- Required query parameter "location" -------------
+	// ------------- Required query parameter "city" -------------
 
-	if paramValue := r.URL.Query().Get("location"); paramValue != "" {
+	if paramValue := r.URL.Query().Get("city"); paramValue != "" {
 
 	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "location"})
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "city"})
 		return
 	}
 
-	err = runtime.BindQueryParameter("form", true, true, "location", r.URL.Query(), &params.Location)
+	err = runtime.BindQueryParameter("form", true, true, "city", r.URL.Query(), &params.City)
 	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "location", Err: err})
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "city", Err: err})
 		return
 	}
 

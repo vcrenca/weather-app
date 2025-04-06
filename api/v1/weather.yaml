@@ -13,7 +13,7 @@ paths:
     get:
       summary: Retrieve current weather for a given city
       parameters:
-        - name: location
+        - name: city
           in: query
           required: true
           description: Name of the city to get the weather for

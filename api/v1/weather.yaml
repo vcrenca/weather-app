@@ -68,15 +68,13 @@ components:
           description: Brief textual description of the weather
           example: "Clear sky"
         temperature:
-          type: number
-          format: float
+          type: integer
           description: Temperature in Celsius
-          example: 22.5
+          example: 22
         wind:
-          type: number
-          format: float
+          type: integer
           description: Wind speed in km/h
-          example: 15.0
+          example: 15
         humidity:
           type: integer
           description: Relative humidity in percentage

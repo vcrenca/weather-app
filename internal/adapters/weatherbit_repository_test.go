@@ -90,8 +90,8 @@ func TestWeatherBitRepository_GetCurrentWeather(t *testing.T) {
 			&weather.Current{
 				City:               "Raleigh",
 				Description:        "Broken clouds",
-				TemperatureCelsius: 24.19,
-				WindKmPerHour:      22.212,
+				TemperatureCelsius: 24,
+				WindKmPerHour:      22,
 				RelativeHumidity:   59,
 			},
 			result,
@@ -103,6 +103,7 @@ func TestWeatherBitRepository_GetCurrentWeather(t *testing.T) {
 
 		// Given
 		mockResponse := `{"data":[]}`
+
 		mockServer := httptest.NewServer(mockGetCurrentWeatherByCity("Paris", func(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte(mockResponse))
 		}))

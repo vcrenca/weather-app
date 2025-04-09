@@ -17,7 +17,7 @@ func (p Percent) Int() int {
 type Current struct {
 	City               string
 	Description        string
-	TemperatureCelsius float32
-	WindKmPerHour      float32
+	TemperatureCelsius int
+	WindKmPerHour      int
 	RelativeHumidity   Percent
 }

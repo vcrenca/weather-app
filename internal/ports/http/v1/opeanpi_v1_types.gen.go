@@ -52,10 +52,10 @@ type CurrentWeather struct {
 	Humidity int `json:"humidity"`
 
 	// Temperature Temperature in Celsius
-	Temperature float32 `json:"temperature"`
+	Temperature int `json:"temperature"`
 
 	// Wind Wind speed in km/h
-	Wind float32 `json:"wind"`
+	Wind int `json:"wind"`
 }
 
 // Forecast defines model for Forecast.

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math"
 	"net/http"
 	"net/url"
 	"weather-api/internal/domain/weather"
@@ -109,8 +110,8 @@ func (w WeatherBitRepository) addApiKeyToUrl(baseURL *url.URL) *url.URL {
 
 type WeatherBitCurrentResponse struct {
 	CityName string  `json:"city_name"`
-	Temp     float32 `json:"temp"`
-	WindSpd  float32 `json:"wind_spd"`
+	Temp     float64 `json:"temp"`
+	WindSpd  float64 `json:"wind_spd"`
 	Rh       int     `json:"rh"`
 	Weather  struct {
 		Description string `json:"description"`
@@ -121,8 +122,8 @@ func mapToDomain(weatherBitResponse WeatherBitCurrentResponse) *weather.Current 
 	return &weather.Current{
 		City:               weatherBitResponse.CityName,
 		Description:        weatherBitResponse.Weather.Description,
-		TemperatureCelsius: weatherBitResponse.Temp,
-		WindKmPerHour:      weatherBitResponse.WindSpd * 3.6,
+		TemperatureCelsius: int(math.Round(weatherBitResponse.Temp)),
+		WindKmPerHour:      int(math.Round(weatherBitResponse.WindSpd * 3.6)),
 		RelativeHumidity:   weather.NewPercent(weatherBitResponse.Rh),
 	}
 }

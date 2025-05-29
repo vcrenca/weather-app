@@ -48,14 +48,14 @@ type CurrentWeather struct {
 	// Description Brief textual description of the weather
 	Description string `json:"description"`
 
-	// Humidity Relative humidity in percentage
-	Humidity int `json:"humidity"`
+	// HumidityPercent Relative humidity in percentage
+	HumidityPercent *int `json:"humidityPercent,omitempty"`
 
-	// Temperature Temperature in Celsius
-	Temperature int `json:"temperature"`
+	// TemperatureCelsius Temperature in Celsius
+	TemperatureCelsius *int `json:"temperatureCelsius,omitempty"`
 
-	// Wind Wind speed in km/h
-	Wind int `json:"wind"`
+	// WindSpeedKmh Wind speed in km/h
+	WindSpeedKmh *int `json:"windSpeedKmh,omitempty"`
 }
 
 // Forecast defines model for Forecast.

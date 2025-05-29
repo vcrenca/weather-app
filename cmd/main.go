@@ -30,18 +30,17 @@ func init() {
 }
 
 func main() {
-	application := app.New()
-	config := application.Configuration()
+	a := app.New()
 
-	slog.Info("Loaded configuration from .env file", "configuration", config)
+	slog.Info("Loaded configuration from .env file", "configuration", a.Configuration())
 
 	weatherBitRepository := adapters.NewWeatherBitRepository(
-		config.WeatherBitBaseURL,
-		config.WeatherBitAPIKey,
+		a.Configuration().WeatherBitBaseURL,
+		a.Configuration().WeatherBitAPIKey,
 	)
 
-	srv := server.CreateServer(config.HttpPort, apiv1.CreateWeatherHttpHandler(weatherBitRepository))
-	slog.Info("Starting HTTP server", slog.String("port", config.HttpPort))
+	srv := server.CreateServer(a.Configuration().HttpPort, apiv1.CreateWeatherHttpHandler(weatherBitRepository))
+	slog.Info("Starting HTTP server", slog.String("port", a.Configuration().HttpPort))
 	if err := srv.ListenAndServe(); err != nil {
 		if !errors.Is(err, http.ErrServerClosed) {
 			slog.Error("failed to start http server", slog.String("error", err.Error()))

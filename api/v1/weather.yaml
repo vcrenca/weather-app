@@ -8,9 +8,16 @@ servers:
   - url: http://localhost:8080/api
     description: Local server
 
+tags:
+  - name: Weather
+    description: Operations related to weather
+
+
 paths:
   /v1/weather/current:
     get:
+      tags:
+        - Weather
       summary: Retrieve current weather for a given city
       parameters:
         - name: city
@@ -33,6 +40,8 @@ paths:
 
   /v1/weather/forecast:
     get:
+      tags:
+        - Weather
       summary: Retrieve condensed weather forecasts for a given city
       parameters:
         - name: location
@@ -67,15 +76,15 @@ components:
           type: string
           description: Brief textual description of the weather
           example: "Clear sky"
-        temperature:
+        temperatureCelsius:
           type: integer
           description: Temperature in Celsius
           example: 22
-        wind:
+        windSpeedKmh:
           type: integer
           description: Wind speed in km/h
           example: 15
-        humidity:
+        humidityPercent:
           type: integer
           description: Relative humidity in percentage
           example: 60

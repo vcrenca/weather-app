@@ -40,9 +40,7 @@ func (w WeatherBitRepository) GetCurrentWeather(ctx context.Context, city string
 		return nil, err
 	}
 
-	var weatherCurrentResponse struct {
-		Data []WeatherBitCurrentResponse `json:"data"`
-	}
+	var weatherCurrentResponse WeatherBitCurrentResponse
 	if err := json.Unmarshal(body, &weatherCurrentResponse); err != nil {
 		return nil, fmt.Errorf("failed to decode current weather response: %w", err)
 	}
@@ -109,6 +107,10 @@ func (w WeatherBitRepository) addApiKeyToUrl(baseURL *url.URL) *url.URL {
 }
 
 type WeatherBitCurrentResponse struct {
+	Data []WeatherBitCurrentResponseData `json:"data"`
+}
+
+type WeatherBitCurrentResponseData struct {
 	CityName string  `json:"city_name"`
 	Temp     float64 `json:"temp"`
 	WindSpd  float64 `json:"wind_spd"`
@@ -118,7 +120,7 @@ type WeatherBitCurrentResponse struct {
 	} `json:"weather"`
 }
 
-func mapToDomain(weatherBitResponse WeatherBitCurrentResponse) *weather.Current {
+func mapToDomain(weatherBitResponse WeatherBitCurrentResponseData) *weather.Current {
 	return &weather.Current{
 		City:               weatherBitResponse.CityName,
 		Description:        weatherBitResponse.Weather.Description,

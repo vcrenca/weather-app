@@ -6,14 +6,18 @@ import (
 	"github.com/go-chi/render"
 	"log/slog"
 	"net/http"
+	"weather-api/internal/common"
 	"weather-api/internal/domain/weather"
 )
 
 func CreateWeatherHttpHandler(repository weather.Repository) func(router chi.Router) http.Handler {
 	return func(router chi.Router) http.Handler {
-		return HandlerFromMux(
+		return HandlerWithOptions(
 			WeatherHttpHandler{weatherRepository: repository},
-			router,
+			ChiServerOptions{
+				BaseRouter:       router,
+				ErrorHandlerFunc: errHandler,
+			},
 		)
 	}
 }
@@ -22,32 +26,32 @@ type WeatherHttpHandler struct {
 	weatherRepository weather.Repository
 }
 
-func (s WeatherHttpHandler) GetV1WeatherCurrent(w http.ResponseWriter, r *http.Request, params GetV1WeatherCurrentParams) {
-	currentWeather, err := s.weatherRepository.GetCurrentWeather(r.Context(), params.City)
+func (h WeatherHttpHandler) GetV1WeatherCurrent(w http.ResponseWriter, r *http.Request, params GetV1WeatherCurrentParams) {
+	currentWeather, err := h.weatherRepository.GetCurrentWeather(r.Context(), params.City)
 	if err != nil {
 		if errors.Is(err, weather.ErrWeatherNotFound) {
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}
 
-		w.WriteHeader(http.StatusInternalServerError)
 		slog.Error(
 			"failed to get current weather",
 			slog.String("city", params.City),
 			slog.String("error", err.Error()),
 		)
+		internalServerError(w, r)
 		return
 	}
 
 	render.Respond(w, r, CurrentWeather{
-		Description: currentWeather.Description,
-		Humidity:    currentWeather.RelativeHumidity.Int(),
-		Temperature: currentWeather.TemperatureCelsius,
-		Wind:        currentWeather.WindKmPerHour,
+		Description:        currentWeather.Description,
+		HumidityPercent:    common.Ptr(currentWeather.RelativeHumidity.ToInt()),
+		TemperatureCelsius: common.Ptr(currentWeather.TemperatureCelsius),
+		WindSpeedKmh:       common.Ptr(currentWeather.WindKmPerHour),
 	})
 }
 
-func (s WeatherHttpHandler) GetV1WeatherForecast(w http.ResponseWriter, r *http.Request, params GetV1WeatherForecastParams) {
+func (h WeatherHttpHandler) GetV1WeatherForecast(w http.ResponseWriter, r *http.Request, params GetV1WeatherForecastParams) {
 	render.Respond(w, r, Forecast{
 		AverageWind:      LightAir,
 		GeneralTrend:     ForecastGeneralTrendDeteriorating,

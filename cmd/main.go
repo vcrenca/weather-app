@@ -6,7 +6,6 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
-	"weather-api/internal/adapters"
 	"weather-api/internal/app"
 	"weather-api/internal/common"
 	server "weather-api/internal/ports/http"
@@ -17,9 +16,10 @@ func init() {
 	env := os.Getenv("ENV")
 	common.InitLogger(env)
 
-	if env == "local" {
+	if env == app.LocalEnv {
 		if err := godotenv.Load(); err != nil {
 			slog.Error("failed to load configuration from .env file", slog.String("error", err.Error()))
+			os.Exit(1)
 		}
 	}
 
@@ -32,18 +32,16 @@ func init() {
 func main() {
 	a := app.New()
 
-	slog.Info("Loaded configuration from .env file", "configuration", a.Configuration())
-
-	weatherBitRepository := adapters.NewWeatherBitRepository(
-		a.Configuration().WeatherBitBaseURL,
-		a.Configuration().WeatherBitAPIKey,
+	srv := server.CreateServer(
+		a.Config().HttpPort,
+		apiv1.CreateWeatherHttpHandler(a.WeatherRepository),
 	)
 
-	srv := server.CreateServer(a.Configuration().HttpPort, apiv1.CreateWeatherHttpHandler(weatherBitRepository))
-	slog.Info("Starting HTTP server", slog.String("port", a.Configuration().HttpPort))
+	slog.Info("Starting HTTP server", slog.String("port", a.Config().HttpPort))
 	if err := srv.ListenAndServe(); err != nil {
 		if !errors.Is(err, http.ErrServerClosed) {
 			slog.Error("failed to start http server", slog.String("error", err.Error()))
+			os.Exit(1)
 		}
 	}
 }

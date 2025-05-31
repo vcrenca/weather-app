@@ -10,7 +10,9 @@ COPY . .
 
 RUN CGO_ENABLED=0 go build -ldflags='-s -w' -o ./bin/weather-api ./cmd/main.go
 
-FROM gcr.io/distroless/static-debian12
+####
+
+FROM gcr.io/distroless/static-debian12:nonroot
 
 COPY --from=build /app/bin/weather-api /
 

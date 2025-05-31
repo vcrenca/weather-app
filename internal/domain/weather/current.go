@@ -10,7 +10,7 @@ func NewPercent(value int) Percent {
 	return Percent(value)
 }
 
-func (p Percent) Int() int {
+func (p Percent) ToInt() int {
 	return int(p)
 }
 

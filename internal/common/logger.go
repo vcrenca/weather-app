@@ -3,11 +3,12 @@ package common
 import (
 	"log/slog"
 	"os"
+	"weather-api/internal/app"
 )
 
 func InitLogger(env string) {
 	var logger *slog.Logger
-	if env == "local" {
+	if env == app.LocalEnv {
 		logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
 	} else {
 		logger = slog.New(slog.NewJSONHandler(os.Stdout, nil))

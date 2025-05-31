@@ -11,8 +11,8 @@ help:
 	@echo "  make compose-down  	Stop the app in docker-compose"
 	@echo "  make logs		Show the logs of docker-compose"
 
-run:
-	go run cmd/main.go
+run-local:
+	ENV=LOCAL go run cmd/main.go
 
 build:
 	go build -o bin/weather-app cmd/main.go
@@ -33,6 +33,7 @@ lint:
 	go vet ./...
 
 compose-up:
+
 	docker compose up --build -d
 
 compose-down:

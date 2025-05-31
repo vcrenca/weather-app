@@ -11,21 +11,12 @@ import (
 	"weather-api/internal/domain/weather"
 )
 
-func mockGetCurrentWeatherByCity(city string, mock func(w http.ResponseWriter, r *http.Request)) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == http.MethodGet && r.URL.Path == "/current" && r.URL.Query().Get("city") == city {
-			mock(w, r)
-		}
-	}
-
-}
-
 func TestWeatherBitRepository_GetCurrentWeather(t *testing.T) {
 	t.Run("should return current weather", func(t *testing.T) {
 		t.Parallel()
 
 		// Given
-		mockServer := httptest.NewServer(mockGetCurrentWeatherByCity("city", func(w http.ResponseWriter, r *http.Request) {
+		mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte(`{  
 				   "data":[  
 					  {  
@@ -104,7 +95,7 @@ func TestWeatherBitRepository_GetCurrentWeather(t *testing.T) {
 		// Given
 		mockResponse := `{"data":[]}`
 
-		mockServer := httptest.NewServer(mockGetCurrentWeatherByCity("Paris", func(w http.ResponseWriter, r *http.Request) {
+		mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte(mockResponse))
 		}))
 		defer mockServer.Close()
@@ -123,7 +114,7 @@ func TestWeatherBitRepository_GetCurrentWeather(t *testing.T) {
 		t.Parallel()
 
 		// Given
-		mockServer := httptest.NewServer(mockGetCurrentWeatherByCity("UnknownCity", func(w http.ResponseWriter, r *http.Request) {
+		mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusNotFound)
 			w.Write([]byte(`{"error": "city not found"}`))
 		}))
